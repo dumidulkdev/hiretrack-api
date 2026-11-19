@@ -1,11 +1,17 @@
 package com.hiretrack.service;
 
 import com.hiretrack.domain.JobApplication;
+import com.hiretrack.dto.ApplicationFilter;
 import com.hiretrack.dto.ApplicationRequest;
 import com.hiretrack.dto.ApplicationResponse;
+import com.hiretrack.dto.PageResponse;
 import com.hiretrack.exception.ResourceNotFoundException;
 import com.hiretrack.mapper.ApplicationMapper;
 import com.hiretrack.repository.JobApplicationRepository;
+import com.hiretrack.repository.spec.ApplicationSpecifications;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +52,27 @@ public class ApplicationService {
     @Transactional(readOnly = true)
     public ApplicationResponse getById(Long id) {
         return mapper.toResponse(findOrThrow(id));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<ApplicationResponse> search(ApplicationFilter filter, Pageable pageable) {
+        Specification<JobApplication> spec = ApplicationSpecifications.fromFilter(filter);
+        Page<JobApplication> page = repository.findAll(spec, pageable);
+        return new PageResponse<>(
+                page.map(mapper::toResponse).getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isFirst(),
+                page.isLast()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.stream.Stream<JobApplication> streamForExport(ApplicationFilter filter) {
+        Specification<JobApplication> spec = ApplicationSpecifications.fromFilter(filter);
+        return repository.findAll(spec, Pageable.unpaged()).stream();
     }
 
     @Transactional

@@ -43,6 +43,19 @@ public class ApplicationController {
         this.statusService = statusService;
     }
 
+    @GetMapping
+    public PageResponse<ApplicationResponse> list(
+            @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(required = false) String company,
+            @RequestParam(required = false) ApplicationSource source,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String q,
+            @PageableDefault(size = 20, sort = "appliedDate", direction = Sort.Direction.DESC) Pageable pageable) {
+        ApplicationFilter filter = new ApplicationFilter(status, company, source, from, to, q);
+        return applicationService.search(filter, pageable);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApplicationResponse create(@Valid @RequestBody ApplicationRequest request) {
