@@ -39,7 +39,7 @@ public class JobApplication extends AuditableEntity {
     @Column(name = "salary_max")
     private Integer salaryMax;
 
-  private String location;
+    private String location;
 
     @Column(nullable = false)
     private boolean remote;

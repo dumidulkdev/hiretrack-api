@@ -8,8 +8,10 @@ import com.hiretrack.dto.ApplicationResponse;
 import com.hiretrack.dto.PageResponse;
 import com.hiretrack.dto.StatusHistoryResponse;
 import com.hiretrack.dto.StatusUpdateRequest;
+import com.hiretrack.service.ApplicationExportService;
 import com.hiretrack.service.ApplicationService;
 import com.hiretrack.service.StatusService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,11 +38,29 @@ import java.util.List;
 public class ApplicationController {
 
     private final ApplicationService applicationService;
+    private final ApplicationExportService exportService;
     private final StatusService statusService;
 
-    public ApplicationController(ApplicationService applicationService, StatusService statusService) {
+    public ApplicationController(
+            ApplicationService applicationService,
+            ApplicationExportService exportService,
+            StatusService statusService) {
         this.applicationService = applicationService;
+        this.exportService = exportService;
         this.statusService = statusService;
+    }
+
+    @GetMapping("/export")
+    public void export(
+            @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(required = false) String company,
+            @RequestParam(required = false) ApplicationSource source,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String q,
+            HttpServletResponse response) throws java.io.IOException {
+        ApplicationFilter filter = new ApplicationFilter(status, company, source, from, to, q);
+        exportService.exportCsv(filter, response);
     }
 
     @GetMapping
