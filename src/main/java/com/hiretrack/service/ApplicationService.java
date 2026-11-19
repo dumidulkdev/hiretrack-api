@@ -6,6 +6,7 @@ import com.hiretrack.dto.ApplicationResponse;
 import com.hiretrack.exception.ResourceNotFoundException;
 import com.hiretrack.mapper.ApplicationMapper;
 import com.hiretrack.repository.JobApplicationRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +19,17 @@ public class ApplicationService {
     private final JobApplicationRepository repository;
     private final ApplicationMapper mapper;
     private final Clock clock;
+    private final StatusService statusService;
 
-    public ApplicationService(JobApplicationRepository repository, ApplicationMapper mapper, Clock clock) {
+    public ApplicationService(
+            JobApplicationRepository repository,
+            ApplicationMapper mapper,
+            Clock clock,
+            @Lazy StatusService statusService) {
         this.repository = repository;
         this.mapper = mapper;
         this.clock = clock;
+        this.statusService = statusService;
     }
 
     @Transactional
@@ -31,7 +38,9 @@ public class ApplicationService {
         Instant now = clock.instant();
         entity.touchActivity(now);
         entity.setLastActivityAt(now);
-        return mapper.toResponse(repository.save(entity));
+        JobApplication saved = repository.save(entity);
+        statusService.recordInitialStatus(saved);
+        return mapper.toResponse(saved);
     }
 
     @Transactional(readOnly = true)
