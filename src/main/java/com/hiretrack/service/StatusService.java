@@ -4,7 +4,9 @@ import com.hiretrack.domain.ApplicationStatus;
 import com.hiretrack.domain.JobApplication;
 import com.hiretrack.domain.StatusHistory;
 import com.hiretrack.dto.ApplicationResponse;
+import com.hiretrack.dto.StatusHistoryResponse;
 import com.hiretrack.dto.StatusUpdateRequest;
+import com.hiretrack.mapper.StatusHistoryMapper;
 import com.hiretrack.mapper.ApplicationMapper;
 import com.hiretrack.policy.StatusTransitionPolicy;
 import com.hiretrack.repository.JobApplicationRepository;
@@ -23,6 +25,7 @@ public class StatusService {
     private final StatusHistoryRepository statusHistoryRepository;
     private final StatusTransitionPolicy transitionPolicy;
     private final ApplicationMapper mapper;
+    private final StatusHistoryMapper statusHistoryMapper;
     private final Clock clock;
 
     public StatusService(
@@ -31,13 +34,23 @@ public class StatusService {
             StatusHistoryRepository statusHistoryRepository,
             StatusTransitionPolicy transitionPolicy,
             ApplicationMapper mapper,
+            StatusHistoryMapper statusHistoryMapper,
             Clock clock) {
         this.applicationService = applicationService;
         this.applicationRepository = applicationRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.transitionPolicy = transitionPolicy;
         this.mapper = mapper;
+        this.statusHistoryMapper = statusHistoryMapper;
         this.clock = clock;
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<StatusHistoryResponse> timeline(Long applicationId) {
+        applicationService.findOrThrow(applicationId);
+        return statusHistoryRepository.findByApplicationIdOrderByChangedAtAsc(applicationId).stream()
+                .map(statusHistoryMapper::toResponse)
+                .toList();
     }
 
     @Transactional
