@@ -1,0 +1,4 @@
+.git
+.idea
+target/*
+!target/hiretrack-api-1.0.0-SNAPSHOT.jar

@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: hiretrack-api
+  profiles:
+    active: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+
+hiretrack:
+  pagination:
+    max-page-size: 100
+  ghosting-threshold-days: 21
+  scheduler:
+    daily-cron: "0 0 6 * * *"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+server:
+  port: 8080
